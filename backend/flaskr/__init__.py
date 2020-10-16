@@ -182,6 +182,7 @@ def create_app(test_config=None):
       return jsonify({ #check paginattion
         'success': True,
         'questions': results,
+        'total_questions': len(Question.query.all()),
         'number_of_results': len(results)
       }), 201
     
@@ -221,15 +222,15 @@ def create_app(test_config=None):
     
     questions = Question.query.filter_by(category = str(id)).all()
     current_questions = paginate_questions(request, questions)
-    
+
     if len(current_questions) == 0:
         abort(404)
     
     return jsonify({
         'success': True,
-        'category': category.id,
+        'current_category': category.type,
         'questions': current_questions,
-        'total_questions': len(Question.query.all())
+        'total_questions': len(current_questions)
       }), 201
 
   '''
@@ -279,8 +280,42 @@ def create_app(test_config=None):
   '''
   @TODO: 
   Create error handlers for all expected errors 
-  including 404 and 422. 400, 404, 422 and 500.
+  including 404 and 422. 400 and 500.
   '''
+
+  @app.errorhandler(400)
+  def bad_request(error):
+      return jsonify({
+        'success': False,
+        'error': 400,
+        'message': 'Bad Request'
+      }), 400
+
+  @app.errorhandler(404)
+  def not_found(error):
+      return jsonify({
+        'success': False,
+        'error': 404,
+        'message': 'Not Found'
+      }), 404
+
+
+  @app.errorhandler(422)
+  def unprocessable(error):
+      return jsonify({
+        'success': False,
+        'error': 422,
+        'message': 'Unprocessable'
+      }), 422
+
+  @app.errorhandler(500)
+  def internal_server_error(error):
+      return jsonify({
+        'success': False,
+        'error': 500,
+        'message': 'Internal Server Error'
+      }), 500
+
   
   return app
 
