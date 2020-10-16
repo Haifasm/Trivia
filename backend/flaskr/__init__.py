@@ -147,36 +147,6 @@ def create_app(test_config=None):
   the form will clear and the question will appear at the end of the last page
   of the questions list in the "List" tab.  
   '''
-  @app.route('/questions', methods=['POST'])
-  def create_question():
-
-    body = request.get_json()
-    
-    new_question = body.get('question', None)
-    new_answer = body.get('answer', None)
-    new_category = body.get('category', None)
-    new_difficulty = body.get('difficulty', None)
-
-    try:
-      question = Question(question = new_question, answer = new_answer, category = new_category, difficulty = new_difficulty)
-      question.insert()
-
-      selection = Question.query.order_by(Question.id).all()
-      current_questions = paginate_questions(request, selection)
-      
-      return jsonify({
-        'success': True,
-        'created': question.id,
-        'questions': current_questions,
-        'total_questions': len(Question.query.all())
-      }), 201
-    
-    except:
-      abort(422)
-
-      
-
-
   '''
   @TODO: 
   Create a POST endpoint to get questions based on a search term. 
@@ -187,6 +157,52 @@ def create_app(test_config=None):
   only question that include that string within their question. 
   Try using the word "title" to start. 
   '''
+  
+  @app.route('/questions', methods=['POST'])
+  def create_question():
+
+    body = request.get_json()
+    
+    new_question = body.get('question', None)
+    new_answer = body.get('answer', None)
+    new_category = body.get('category', None)
+    new_difficulty = body.get('difficulty', None)
+
+    searchTerm = body.get('searchTerm', None)
+    
+    #search
+    if searchTerm:
+      #ILIKE allows you to perform case-insensitive pattern matching
+      selection = Question.query.filter(Question.question.ilike(f'%{searchTerm}%')).all()
+      results = paginate_questions(request, selection)
+      
+      if len(results) == 0:
+        abort(404)
+
+      return jsonify({ #check paginattion
+        'success': True,
+        'questions': results,
+        'number_of_results': len(results)
+      }), 201
+    
+    #create
+    else:
+      try:
+        question = Question(question = new_question, answer = new_answer, category = new_category, difficulty = new_difficulty)
+        question.insert()
+
+        selection = Question.query.order_by(Question.id).all()
+        current_questions = paginate_questions(request, selection)
+        
+        return jsonify({
+          'success': True,
+          'created': question.id,
+          'questions': current_questions,
+          'total_questions': len(Question.query.all())
+        }), 201
+      
+      except:
+        abort(422)
 
   '''
   @TODO: 
@@ -196,7 +212,25 @@ def create_app(test_config=None):
   categories in the left column will cause only questions of that 
   category to be shown. 
   '''
-
+  @app.route('/categories/<int:id>/questions')
+  def get_questions_in_category(id):
+    #check if exist
+    category = Category.query.filter_by(id = id).one_or_none()
+    if category is None:
+      abort(404) #422 better?
+    
+    questions = Question.query.filter_by(category = str(id)).all()
+    current_questions = paginate_questions(request, questions)
+    
+    if len(current_questions) == 0:
+        abort(404)
+    
+    return jsonify({
+        'success': True,
+        'category': category.id,
+        'questions': current_questions,
+        'total_questions': len(Question.query.all())
+      }), 201
 
   '''
   @TODO: 
@@ -209,11 +243,43 @@ def create_app(test_config=None):
   one question at a time is displayed, the user is allowed to answer
   and shown whether they were correct or not. 
   '''
+  @app.route('/quizzes', methods=['POST'])
+  def play_quiz():
+
+    data = request.get_json()
+    quiz_category = data.get('quiz_category', None)
+    previous_questions = data.get('previous_questions', [])
+
+    if quiz_category is None:
+      abort(404)
+
+    # quiz_category -> ex. {'type': 'Science', 'id': '1'} get the id
+    category_id = int(quiz_category['id'])
+
+    # if id=0 all categories
+    if category_id == 0:
+      questions = Question.query.filter(Question.id.notin_(previous_questions)).all()
+    else:
+      questions = Question.query.filter(Question.category == category_id).filter(Question.id.notin_(previous_questions)).all()
+    
+    # get a random question from the available questions
+    if questions:
+      question = random.choice(questions)
+      question_formatted = question.format()
+    else:
+      question_formatted = False
+    
+    return jsonify({
+      'success': True,
+      'previous_questions': previous_questions,
+      'question': question_formatted
+    }), 200
+
 
   '''
   @TODO: 
   Create error handlers for all expected errors 
-  including 404 and 422. 
+  including 404 and 422. 400, 404, 422 and 500.
   '''
   
   return app
