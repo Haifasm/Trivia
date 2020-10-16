@@ -16,7 +16,7 @@ def create_app(test_config=None):
   '''
   @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
   '''
-  cors = CORS(app, resources={'/': {"origins": "*"}}) ##r"/api/*"
+  cors = CORS(app, resources={'/': {"origins": "*"}})
 
 
   '''
@@ -27,7 +27,6 @@ def create_app(test_config=None):
   def after_request(response):
       response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,true')
       response.headers.add('Access-Control-Allow-Methods', 'GET,PATCH,POST,DELETE,OPTIONS')
-      ##response.headers.add('Access-Control-Allow-Origin', '*') 
       return response
   
 
@@ -52,11 +51,8 @@ def create_app(test_config=None):
       'success': True,
       'categories': formatted_categories,
       'total_categories': len(Category.query.all())
-    })
+    }), 201
   
-  
-
-
   '''
   @TODO: 
   Create an endpoint to handle GET requests for questions, 
@@ -72,7 +68,7 @@ def create_app(test_config=None):
   def paginate_questions(request, selection):
       #use request to be able to use its arguments to get the page number or 1 if no page number
       page = request.args.get('page', 1, type=int)
-      #srart and end of the books we are looking at
+      #srart and end of the questions
       start = (page - 1) * QUESTIONS_PER_PAGE
       end = start + QUESTIONS_PER_PAGE
 
@@ -90,7 +86,7 @@ def create_app(test_config=None):
       abort(404)
 
     categories = Category.query.order_by(Category.id).all()
-    #formatted_categories = [category.format() for category in catogeries]
+    #formatted_categories = [category.format() for category in catogeries] error
     formatted_categories = {category.id: category.type for category in categories}
     
     if len(formatted_categories) == 0:
@@ -102,10 +98,8 @@ def create_app(test_config=None):
       'total_questions': len(Question.query.all()),
       'categories': formatted_categories,
       'current_category': None
-    })
+    }), 201
     
-
-
   '''
   @TODO: 
   Create an endpoint to DELETE question using a question ID. 
@@ -132,10 +126,10 @@ def create_app(test_config=None):
         'deleted': question_id,
         'questions': current_questions,
         'total_questions': len(Question.query.all())
-      })
+      }), 201
     
     except:
-      abort(422)
+      abort(400)
 
   '''
   @TODO: 
@@ -218,7 +212,7 @@ def create_app(test_config=None):
     #check if exist
     category = Category.query.filter_by(id = id).one_or_none()
     if category is None:
-      abort(404) #422 better?
+      abort(404)
     
     questions = Question.query.filter_by(category = str(id)).all()
     current_questions = paginate_questions(request, questions)
@@ -257,25 +251,27 @@ def create_app(test_config=None):
     # quiz_category -> ex. {'type': 'Science', 'id': '1'} get the id
     category_id = int(quiz_category['id'])
 
-    # if id=0 all categories
-    if category_id == 0:
-      questions = Question.query.filter(Question.id.notin_(previous_questions)).all()
-    else:
-      questions = Question.query.filter(Question.category == category_id).filter(Question.id.notin_(previous_questions)).all()
-    
-    # get a random question from the available questions
-    if questions:
-      question = random.choice(questions)
-      question_formatted = question.format()
-    else:
-      question_formatted = False
-    
-    return jsonify({
-      'success': True,
-      'previous_questions': previous_questions,
-      'question': question_formatted
-    }), 200
-
+    try:
+      # if id=0 all categories
+      if category_id == 0:
+        questions = Question.query.filter(Question.id.notin_(previous_questions)).all()
+      else:
+        questions = Question.query.filter(Question.category == category_id).filter(Question.id.notin_(previous_questions)).all()
+      
+      # get a random question from the available questions
+      if questions:
+        question = random.choice(questions)
+        question_formatted = question.format()
+      else:
+        question_formatted = False
+      
+      return jsonify({
+        'success': True,
+        'previous_questions': previous_questions,
+        'question': question_formatted
+      }), 200
+    except:
+      abort(500)
 
   '''
   @TODO: 
@@ -315,7 +311,6 @@ def create_app(test_config=None):
         'error': 500,
         'message': 'Internal Server Error'
       }), 500
-
   
   return app
 
