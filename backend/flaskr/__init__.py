@@ -51,7 +51,7 @@ def create_app(test_config=None):
       'success': True,
       'categories': formatted_categories,
       'total_categories': len(Category.query.all())
-    }), 201
+    }), 200
   
   '''
   @TODO: 
@@ -98,7 +98,7 @@ def create_app(test_config=None):
       'total_questions': len(Question.query.all()),
       'categories': formatted_categories,
       'current_category': None
-    }), 201
+    }), 200
     
   '''
   @TODO: 
@@ -126,10 +126,10 @@ def create_app(test_config=None):
         'deleted': question_id,
         'questions': current_questions,
         'total_questions': len(Question.query.all())
-      }), 201
+      }), 200
     
     except:
-      abort(400)
+      abort(422)
 
   '''
   @TODO: 
@@ -173,13 +173,13 @@ def create_app(test_config=None):
       if len(results) == 0:
         abort(404)
 
-      return jsonify({ #check paginattion
+      return jsonify({ 
         'success': True,
         'questions': results,
-        'total_questions': len(Question.query.all()),
-        'number_of_results': len(results)
-      }), 201
-    
+        'total_questions': len(results),
+        'current_category': None
+      }), 200
+
     #create
     else:
       try:
@@ -225,7 +225,7 @@ def create_app(test_config=None):
         'current_category': category.type,
         'questions': current_questions,
         'total_questions': len(current_questions)
-      }), 201
+      }), 200
 
   '''
   @TODO: 
@@ -311,6 +311,16 @@ def create_app(test_config=None):
         'error': 500,
         'message': 'Internal Server Error'
       }), 500
+
+  @app.errorhandler(405)
+  def method_not_allowed(error):
+      return jsonify({
+        'success': False,
+        'error': 405,
+        'message': 'Method Not Allowed'
+      }), 405
+
+      
   
   return app
 
