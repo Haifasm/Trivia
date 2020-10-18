@@ -31,17 +31,19 @@ This app can only be run locally, no authentication or API keys required.
 ## Error Handling
 
 Errors are returned in the following json format:
+'''javascript
 {
   'success': False,
   'error': 404,
   'message': 'Not Found'
 }
+'''
 
 The errors handled by the API include:
-400: Bad Request
-404: Not Foun
-405: Method Not Allowed
-422: Not Processable
-500: Internal Server Error
+- 400: Bad Request
+- 404: Not Found
+- 405: Method Not Allowed
+- 422: Not Processable
+- 500: Internal Server Error
 
 
