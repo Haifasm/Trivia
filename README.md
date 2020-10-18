@@ -19,3 +19,29 @@ Start by reading the READMEs in:
 2. [`./frontend/`](./frontend/README.md)
 
 It is recommended to follow the instructions in those files in order.
+
+# API Reference
+
+## Getting Started
+
+This app can only be run locally, no authentication or API keys required.
+1. The backend app is hosted at http://127.0.0.1:5000/.
+2. Rhe frontend app is hosted at http://127.0.0.1:3000/. There is no requirement for authentication.
+
+## Error Handling
+
+Errors are returned in the following json format:
+{
+  'success': False,
+  'error': 404,
+  'message': 'Not Found'
+}
+
+The errors handled by the API include:
+400: Bad Request
+404: Not Foun
+405: Method Not Allowed
+422: Not Processable
+500: Internal Server Error
+
+
