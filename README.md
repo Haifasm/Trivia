@@ -11,7 +11,8 @@ The application is able to:
 4) Search for questions based on a text query string.
 5) Play the quiz game, randomizing either all questions or within a specific category.
 <img width="1435" alt="Screen Shot 2020-10-18 at 10 47 20 AM" src="https://user-images.githubusercontent.com/51233872/96361747-fd421180-1130-11eb-9f77-5b1f8dc2d489.png">
-## Installation
+
+# Installation
 
 Start by reading the READMEs in:
 1. [`./backend/`](./backend/README.md)
