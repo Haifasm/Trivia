@@ -51,7 +51,15 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(results.status_code, 200) 
         self.assertEqual(data['success'], True)
         self.assertTrue(data['categories'])
-        self.assertEqual(len(data['categories']), 6) # total_categories = 6
+        self.assertEqual(len(data['categories']), 6)  # total_categories = 6
+    
+    def test_404_get_categories(self):
+        results = self.client().get('/categories/')
+        data = json.loads(results.data)
+
+        self.assertEqual(results.status_code, 404)
+        self.assertEqual(data['success'], False)
+        self.assertTrue(data['message'], 'Not Found')
 
     '''
     Get Questions
@@ -110,10 +118,10 @@ class TriviaTestCase(unittest.TestCase):
 
         self.assertEqual(results.status_code, 200) 
         self.assertEqual(data['success'], True)
-        self.assertEqual(data['deleted'],2)
+        self.assertEqual(data['deleted'], 2)
         self.assertTrue(data['total_questions'])
         self.assertTrue(data['questions'])
-        self.assertEqual(deleted_question,None)
+        self.assertEqual(deleted_question, None)
 
     def test_422_delete_question(self):
         results = self.client().delete('/questions/2000')
@@ -132,6 +140,13 @@ class TriviaTestCase(unittest.TestCase):
 
         self.assertEqual(results.status_code, 200)
         self.assertEqual(data['success'], True)
+    
+    def test_get_questions_in_category(self):
+        results = self.client().get('/categories/8/questions')
+        data = json.loads(results.data)
+
+        self.assertEqual(results.status_code, 404)
+        self.assertEqual(data['success'], False)
     
     '''
     Play Quiz
@@ -180,12 +195,6 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], False)
         self.assertTrue(data['message'], 'Not Found')
 
-
-
-
-
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()
-
-#python test_flaskr.py
